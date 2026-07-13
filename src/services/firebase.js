@@ -14,12 +14,13 @@ import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME.firebaseapp.com",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME.appspot.com",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME",
+  apiKey: "AIzaSyBekkZ7DbBVNBJI-n9OmfXhnFzV7OcmAkw",
+  authDomain: "venusfortunereport.firebaseapp.com",
+  projectId: "venusfortunereport",
+  storageBucket: "venusfortunereport.firebasestorage.app",
+  messagingSenderId: "558925996837",
+  appId: "1:558925996837:web:e5f63f4233abf8e06b70cc",
+  measurementId: "G-9CMYCPKH5L",
 };
 
 // Kept here only for reference/UI display — the *authoritative* admin
