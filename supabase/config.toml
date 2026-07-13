@@ -1,0 +1,32 @@
+# Supabase project config. The [functions.*] blocks below are the important
+# part: verify_jwt = false tells Supabase's gateway not to expect its own
+# Supabase-issued JWT in the Authorization header — we're intentionally
+# putting a Firebase ID token there instead, and each function verifies that
+# token itself (see supabase/functions/_shared/firebaseAuth.ts). Without
+# this setting, Supabase's gateway would reject every request before your
+# function code ever runs.
+project_id = "rgdikumgtdomrufgbzbf"
+
+[functions.get-pricing]
+verify_jwt = false
+
+[functions.create-razorpay-order]
+verify_jwt = false
+
+[functions.verify-razorpay-payment]
+verify_jwt = false
+
+[functions.create-stripe-intent]
+verify_jwt = false
+
+[functions.confirm-stripe-payment]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.unlock-report]
+verify_jwt = false
+
+[functions.get-profile]
+verify_jwt = false

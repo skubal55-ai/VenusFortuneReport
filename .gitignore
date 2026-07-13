@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native build output (from expo prebuild)
+ios/
+android/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# Env / secrets — never commit real keys.
+.env
+.env.local
+.env*.local
+
+# Editor
+.idea/
+.vscode/
+
+# Supabase local dev
+.branches
+.temp
+
+# Testing
+coverage/
