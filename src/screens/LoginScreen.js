@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { signIn, signUp } from "../services/auth";
 import { fetchProfile } from "../services/profile";
+import { showAlert } from "../utils/alert";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation, route }) {
@@ -27,7 +28,7 @@ export default function LoginScreen({ navigation, route }) {
 
   async function handleSubmit() {
     if (!email.trim() || !password) {
-      Alert.alert("Missing details", "Enter both email and password.");
+      showAlert("Missing details", "Enter both email and password.");
       return;
     }
     setBusy(true);
@@ -35,7 +36,7 @@ export default function LoginScreen({ navigation, route }) {
       mode === "signin" ? await signIn(email.trim(), password) : await signUp(email.trim(), password);
       await proceedAfterAuth();
     } catch (e) {
-      Alert.alert("Authentication error", e.message || String(e));
+      showAlert("Authentication error", e.message || String(e));
     } finally {
       setBusy(false);
     }

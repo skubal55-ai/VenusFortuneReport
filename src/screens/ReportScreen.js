@@ -1,26 +1,29 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from "react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { unlockReport } from "../services/profile";
 import { useAuth } from "../context/AuthContext";
-import { computeVenusChart, SIGN_SYMBOL, SIGNS } from "../astro/calculations";
+import { computeVenusChart, SIGN_SYMBOL, SIGNS, computeCurrentVenusTransit } from "../astro/calculations";
 import {
   WESTERN_DETAIL, VEDIC_DETAIL, HOUSE_WESTERN, HOUSE_VEDIC,
   REMEDY_DAILY, REMEDY_WEEKLY, REMEDY_SADHANA_16_FRIDAY, REMEDY_GEMSTONE,
-  REMEDY_WEALTH, REMEDY_HEALTH, REMEDY_MODERN,
+  REMEDY_WEALTH, REMEDY_HEALTH, REMEDY_MODERN, REMEDY_REIKI, buildTargetedRemedies,
+  LUCKY_POINTERS, CAREER_PATHS, COMPATIBLE_SIGNS, YANTRA, buildExecutiveSummary,
 } from "../astro/content";
 import Gauge from "../components/Gauge";
 import Tag from "../components/Tag";
+import AccountBar from "../components/AccountBar";
+import { showAlert } from "../utils/alert";
 
 function ordinal(n) {
   const s = ["th", "st", "nd", "rd"], v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-export default function ReportScreen({ route }) {
+export default function ReportScreen({ route, navigation }) {
   const { birthData } = route.params;
-  const { profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [status, setStatus] = useState("checking"); // checking | allowed | denied | error
   const [errorMsg, setErrorMsg] = useState("");
   const printableRef = useRef();
@@ -74,29 +77,52 @@ export default function ReportScreen({ route }) {
 
   const western = WESTERN_DETAIL[chart.westernSign];
   const vedic = VEDIC_DETAIL[chart.vedicSign];
+  const targetedRemedies = buildTargetedRemedies(chart);
+  const executiveSummary = buildExecutiveSummary(birthData, chart);
+  const transit = computeCurrentVenusTransit(chart.westernSign);
+  const lucky = LUCKY_POINTERS[chart.westernSign];
+  const career = CAREER_PATHS[chart.westernSign];
+  const compatible = COMPATIBLE_SIGNS[chart.westernSign] || [];
 
   async function handleDownloadPdf() {
+    const html = buildReportHtml(birthData, chart, western, vedic, {
+      executiveSummary, lucky, career, compatible, transit, targetedRemedies,
+    });
     try {
-      const html = buildReportHtml(birthData, chart, western, vedic);
+      if (Platform.OS === "web") {
+        // expo-print's printToFileAsync has no web implementation (there's no
+        // app-private filesystem in a browser to write to) -- it silently
+        // resolves to an object with no "uri", which is what was crashing
+        // here. printAsync() *is* supported on web: it opens the browser's
+        // native print dialog, where "Save as PDF" is one of the built-in
+        // destination options.
+        await Print.printAsync({ html });
+        return;
+      }
       const { uri } = await Print.printToFileAsync({ html });
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, { UTI: ".pdf", mimeType: "application/pdf" });
       } else {
-        Alert.alert("PDF created", `Saved to: ${uri}`);
+        showAlert("PDF created", `Saved to: ${uri}`);
       }
     } catch (e) {
-      Alert.alert("Could not create PDF", e.message || String(e));
+      showAlert("Could not create PDF", e.message || String(e));
     }
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
+      <AccountBar navigation={navigation} />
       <Text style={styles.reportName}>{birthData.name ? `${birthData.name}'s Venus Report` : "Your Venus Report"}</Text>
       <Text style={styles.reportMeta}>
         Born {birthData.y}-{String(birthData.mo).padStart(2, "0")}-{String(birthData.d).padStart(2, "0")} at{" "}
         {String(birthData.hh).padStart(2, "0")}:{String(birthData.mm).padStart(2, "0")}
         {birthData.place ? ` in ${birthData.place}` : ""}
       </Text>
+
+      <View style={styles.card}>
+        <Text style={styles.paragraph}>{executiveSummary}</Text>
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Venus Snapshot</Text>
@@ -117,6 +143,13 @@ export default function ReportScreen({ route }) {
           <Tag tone={chart.combust ? "warn" : "good"}>
             {chart.combust ? `Combust (${chart.combustDiff.toFixed(1)}° from Sun)` : "Not combust"}
           </Tag>
+        </View>
+        <Text style={styles.subhead}>Lucky Pointers</Text>
+        <View style={styles.snapshotGrid}>
+          <Stat k="Lucky Day" v={lucky.day} />
+          <Stat k="Lucky Colors" v={lucky.colors} />
+          <Stat k="Lucky Numbers" v={lucky.numbers} />
+          <Stat k="Favorable Direction" v={lucky.direction} />
         </View>
       </View>
 
@@ -147,7 +180,47 @@ export default function ReportScreen({ route }) {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Remedies to Strengthen Venus</Text>
+        <Text style={styles.sectionTitle}>Career & Compatibility</Text>
+        <Text style={styles.subhead}>Career & Life Path</Text>
+        <Text style={styles.paragraph}>{career}</Text>
+        <Text style={styles.subhead}>Compatible Signs</Text>
+        <Text style={styles.paragraph}>{compatible.join(", ")}</Text>
+        <Text style={styles.disclaimer}>
+          Compatibility here reflects classical sign-pairing tendencies only -- a full compatibility reading
+          compares two complete charts, not just Venus signs.
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Venus Right Now</Text>
+        <Text style={styles.paragraph}>
+          Transiting Venus is currently in {transit.currentSign}. Compared to your natal Venus in {transit.natalSign}, that makes
+          this a "{transit.label}" stretch.
+        </Text>
+        <Text style={styles.paragraph}>{transit.note}</Text>
+        <Text style={styles.disclaimer}>
+          This is a general seasonal indicator based on sign-to-sign angles, not a precise prediction -- a full
+          transit or dasha reading from a qualified astrologer accounts for far more detail than this alone.
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Targeted Remedies for Your Venus Condition</Text>
+        <Text style={styles.paragraph}>
+          The practices below are chosen specifically for what this chart shows about Venus -- its dignity, and
+          whether it's combust or retrograde -- rather than being generic. Follow these alongside (not instead of)
+          the universal daily/weekly practices further down.
+        </Text>
+        {targetedRemedies.map((section, i) => (
+          <View key={i}>
+            <Text style={styles.subhead}>{section.heading}</Text>
+            {section.items.map((t, j) => <Text key={j} style={styles.bullet}>• {t}</Text>)}
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Universal Remedies to Strengthen Venus</Text>
 
         <Text style={styles.subhead}>Daily Practice</Text>
         {REMEDY_DAILY.map((t, i) => <Text key={i} style={styles.bullet}>• {t}</Text>)}
@@ -167,6 +240,10 @@ export default function ReportScreen({ route }) {
         <Text style={styles.bullet}>• {REMEDY_GEMSTONE.alternative}</Text>
         <Text style={[styles.bullet, { fontStyle: "italic" }]}>• {REMEDY_GEMSTONE.caution}</Text>
 
+        <Text style={styles.subhead}>Yantra</Text>
+        <Text style={styles.bullet}>• {YANTRA.primary}</Text>
+        <Text style={styles.bullet}>• {YANTRA.usage}</Text>
+
         <Text style={styles.subhead}>For Wealth</Text>
         {REMEDY_WEALTH.map((t, i) => <Text key={i} style={styles.bullet}>• {t}</Text>)}
 
@@ -176,12 +253,24 @@ export default function ReportScreen({ route }) {
         <Text style={styles.subhead}>Modern / Western-Style Practices</Text>
         {REMEDY_MODERN.map((t, i) => <Text key={i} style={styles.bullet}>• {t}</Text>)}
 
+        <Text style={styles.subhead}>Reiki / Energy Healing</Text>
+        {REMEDY_REIKI.map((t, i) => <Text key={i} style={styles.bullet}>• {t}</Text>)}
+
         <Text style={styles.disclaimer}>
           This report uses approximate astronomical calculations and traditional astrological interpretation. It is
           intended for reflection and spiritual guidance, not a substitute for professional medical, financial, or
           legal advice, and results from remedies are a matter of traditional belief and personal practice, not a
           guaranteed or measurable outcome. Consult a qualified astrologer before gemstone use, and a licensed
           professional for health or financial decisions.
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Your Action Plan</Text>
+        <Text style={styles.paragraph}>
+          If you only do three things from this report: follow the "For Your Dignity" remedy above every Friday,
+          track your finances weekly using the practice under Universal Remedies, and revisit this report at the
+          start of your next 16-Friday cycle to see what's shifted.
         </Text>
       </View>
 
@@ -204,22 +293,58 @@ function Stat({ k, v }) {
   );
 }
 
-function buildReportHtml(birthData, chart, western, vedic) {
+function buildReportHtml(birthData, chart, western, vedic, extra) {
+  const { executiveSummary, lucky, career, compatible, transit, targetedRemedies } = extra;
+  const targetedHtml = targetedRemedies.map((section) => `
+    <h3>${section.heading}</h3>
+    <ul>${section.items.map((t) => `<li>${t}</li>`).join("")}</ul>
+  `).join("");
+
   return `
     <html><body style="font-family: Georgia, serif; padding: 24px; color:#2b2320;">
       <h1 style="color:#c76b8a;">${birthData.name ? birthData.name + "'s" : "Your"} Venus Report</h1>
       <p>Born ${birthData.y}-${birthData.mo}-${birthData.d} at ${birthData.hh}:${birthData.mm} ${birthData.place || ""}</p>
+      <p style="font-style:italic;">${executiveSummary}</p>
       <h2>Snapshot</h2>
       <p>Western Sign: ${chart.westernSign} (House ${chart.westernHouse})<br/>
       Vedic Rashi: ${chart.vedicSign} (Bhava ${chart.vedicHouse})<br/>
       Nakshatra: ${chart.nakshatra} Pada ${chart.pada}<br/>
       Dignity: ${chart.dignity.label}<br/>
-      Strength Score: ${chart.score}/100</p>
+      Strength Score: ${chart.score}/100<br/>
+      Lucky Day: ${lucky.day} | Lucky Colors: ${lucky.colors} | Lucky Numbers: ${lucky.numbers} | Favorable Direction: ${lucky.direction}</p>
       <h2>Western View</h2>
       <p>${western.summary}</p><p><b>Love:</b> ${western.love}</p><p><b>Wealth:</b> ${western.wealth}</p><p><b>Health:</b> ${western.health}</p>
       <h2>Vedic View</h2>
       <p>${vedic.summary}</p><p><b>Love:</b> ${vedic.love}</p><p><b>Wealth:</b> ${vedic.wealth}</p><p><b>Health:</b> ${vedic.health}</p>
-      <p style="font-size:11px;color:#7a6f63;margin-top:30px;">For reflection and spiritual guidance only; not a substitute for professional medical, financial, or legal advice.</p>
+      <h2>Career & Compatibility</h2>
+      <p><b>Career & Life Path:</b> ${career}</p>
+      <p><b>Compatible Signs:</b> ${compatible.join(", ")}</p>
+      <h2>Venus Right Now</h2>
+      <p>Transiting Venus is currently in ${transit.currentSign} -- a "${transit.label}" stretch relative to your natal Venus in ${transit.natalSign}. ${transit.note}</p>
+      <h2>Targeted Remedies for Your Venus Condition</h2>
+      ${targetedHtml}
+      <h2>Universal Remedies to Strengthen Venus</h2>
+      <h3>Daily Practice</h3>
+      <ul>${REMEDY_DAILY.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <h3>Weekly (Friday) Practice</h3>
+      <ul>${REMEDY_WEEKLY.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <h3>16-Friday Shukra Sadhana (Accelerated Protocol)</h3>
+      <ul>${REMEDY_SADHANA_16_FRIDAY.map((ph) => `<li><b>${ph.weeks} -- ${ph.focus}:</b> ${ph.detail}</li>`).join("")}</ul>
+      <h3>Gemstone (Use Caution)</h3>
+      <ul><li>${REMEDY_GEMSTONE.primary}</li><li>${REMEDY_GEMSTONE.alternative}</li><li><i>${REMEDY_GEMSTONE.caution}</i></li></ul>
+      <h3>Yantra</h3>
+      <ul><li>${YANTRA.primary}</li><li>${YANTRA.usage}</li></ul>
+      <h3>For Wealth</h3>
+      <ul>${REMEDY_WEALTH.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <h3>For Health</h3>
+      <ul>${REMEDY_HEALTH.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <h3>Modern / Western-Style Practices</h3>
+      <ul>${REMEDY_MODERN.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <h3>Reiki / Energy Healing</h3>
+      <ul>${REMEDY_REIKI.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <h2>Your Action Plan</h2>
+      <p>If you only do three things from this report: follow the "For Your Dignity" remedy above every Friday, track your finances weekly using the practice under Universal Remedies, and revisit this report at the start of your next 16-Friday cycle to see what's shifted.</p>
+      <p style="font-size:11px;color:#7a6f63;margin-top:30px;">This report uses approximate astronomical calculations and traditional astrological interpretation. It is intended for reflection and spiritual guidance, not a substitute for professional medical, financial, or legal advice, and results from remedies are a matter of traditional belief and personal practice, not a guaranteed or measurable outcome. Consult a qualified astrologer before gemstone use, and a licensed professional for health or financial decisions. Compatibility and transit notes are general indicators, not a substitute for a full two-chart or dasha-based reading from a qualified astrologer.</p>
     </body></html>
   `;
 }

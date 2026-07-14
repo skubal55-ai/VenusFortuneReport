@@ -235,3 +235,177 @@ export const REMEDY_MODERN = [
   "Schedule recurring self-care (skincare, rest, creative time) rather than waiting until you 'have time' for it.",
   "Have one honest conversation this month with a partner or close friend about needs and values — Venus-related growth often comes through directness, not avoidance.",
 ];
+
+// ---------------------------------------------------------------------
+// TARGETED REMEDIES — personalized by the actual condition of Venus in
+// each chart (dignity, combustion, retrograde), on top of the universal
+// daily/weekly practices above. This is what makes the remedy section
+// respond to "what's actually wrong (or strong) with Venus here" rather
+// than being identical for every birth date.
+// ---------------------------------------------------------------------
+export const REMEDY_BY_DIGNITY = {
+  "Exalted": [
+    "Your Venus is already in its single strongest placement (exalted in Pisces) — the work here is preservation, not repair. The traditional caution at this strength is drift into over-indulgence or naivety in love and money.",
+    "Use Fridays to consciously appreciate what's already working (a gratitude practice fits this placement especially well) rather than only chasing more.",
+    "Channel natural charm into real generosity rather than approval-seeking — a strong Venus that only receives admiration can quietly curdle into vanity over time.",
+  ],
+  "Own Sign": [
+    "Venus rules Taurus, so it's comfortable and naturally strong here — the traditional risk is complacency, coasting on charm or comfort without actively tending to it.",
+    "Renew relationships and financial habits on purpose rather than assuming steadiness will sustain itself indefinitely.",
+    "Give proactively (charity, gifts, generosity) since a strong, comfortable Venus that only accumulates can turn possessive or stagnant.",
+  ],
+  "Own Sign / Moolatrikona": [
+    "Venus rules Libra and sits in Moolatrikona here — one of its strongest possible placements. As with any strong placement, the traditional risk is complacency rather than active affliction.",
+    "Keep partnership and financial habits consciously maintained rather than assumed; strong placements can coast until they don't.",
+    "This placement responds especially well to balance-oriented practice — literal fairness and reciprocity in giving and receiving.",
+  ],
+  "Debilitated": [
+    "This is traditionally Venus's most challenging placement (debilitated in Virgo), and remedial practice matters more here than for any other dignity. Take the weekly and 16-Friday practices seriously rather than casually.",
+    "Lean harder on the charity/donation practice specifically on Fridays — debilitation remedies traditionally emphasize giving more than the general weekly baseline.",
+    "Watch for the classic Virgo-Venus shadow: harsh self-criticism or nitpicking directed at partners (or yourself) around love and money — softening this is itself a remedy, not just a side effect of one.",
+    "Ask a qualified astrologer to check for 'Neecha Bhanga' (debilitation cancellation) in your full chart — certain planetary combinations can significantly offset a debilitation, and that's worth knowing rather than assuming the worst.",
+  ],
+  "Challenging Sign": [
+    "Venus is uncomfortable in this sign (Scorpio or Capricorn), typically showing up as intensity, control, secrecy, or restriction around love and money rather than outright weakness.",
+    "If your placement is Scorpio: watch for jealousy, possessiveness, or secrecy patterns in relationships — naming them honestly (journaling, or with a trusted partner) is itself the remedy.",
+    "If your placement is Capricorn: watch for excessive restriction or difficulty allowing yourself pleasure and spending — deliberately budgeting IN a small amount of enjoyment each week counteracts this.",
+    "Use the 16-Friday sadhana's later phases specifically to release old resentment or scarcity patterns rather than just going through the motions of the ritual.",
+  ],
+  "Neutral": [
+    "No major affliction or exceptional strength shows up in this placement — Venus here responds predictably and reliably to steady traditional practice.",
+    "Follow the daily and weekly remedies above as your primary path; there's no urgent condition here that calls for anything beyond consistency.",
+  ],
+};
+
+export const REMEDY_COMBUST_EXTRA = [
+  "Venus is combust in your chart (very close to the Sun), which traditionally weakens its visible expression — love and financial matters can feel overshadowed by ego, work demands, or a dominant partner or family member.",
+  "Combust-Venus remedies traditionally address the Sun alongside Venus, not Venus alone: on Fridays, also offer water to the rising sun (or simply pause to acknowledge it) in addition to your usual Venus practice.",
+  "Where possible, avoid finalizing major financial commitments or relationship decisions in a rush — combustion periods traditionally favor patience; a qualified astrologer can tell you precisely when this combustion is exact versus separating.",
+];
+
+export const REMEDY_RETROGRADE_EXTRA = [
+  "Venus is retrograde in your chart, which traditionally signals 'revisit, don't restart' — people, patterns, or financial matters from the past may be the actual focus, even if new ones seem more exciting.",
+  "Use the 16-Friday sadhana specifically to close old loops (an overdue apology, a lingering debt, an unfinished goodbye) rather than treating it as a launchpad for brand-new relationships or investments.",
+  "Traditional practice discourages consecrating a new gemstone while Venus is retrograde in the sky (not just in your birth chart) — if you plan to follow the gemstone remedy, a qualified astrologer can confirm current transit timing.",
+];
+
+export const REMEDY_OWN_NAKSHATRA_NOTE =
+  "Venus also sits in one of its own nakshatras (Bharani, Purva Phalguni, or Purva Ashadha) here — traditionally a sign of resilience that helps you recover well even through a difficult placement or affliction. Lean into consistency of practice rather than intensity.";
+
+/**
+ * Assemble the remedy sections that are specific to THIS chart's actual
+ * Venus condition, separate from the universal daily/weekly/sadhana
+ * practices which are intentionally the same for everyone.
+ * @param {{dignity:{label:string}, combust:boolean, retrograde:boolean, ownNakshatra:boolean}} chart
+ * @returns {{heading:string, items:string[]}[]}
+ */
+export function buildTargetedRemedies(chart) {
+  const sections = [];
+
+  const dignityItems = REMEDY_BY_DIGNITY[chart.dignity?.label] || REMEDY_BY_DIGNITY["Neutral"];
+  sections.push({ heading: `For Your Dignity: ${chart.dignity?.label || "Neutral"}`, items: dignityItems });
+
+  if (chart.combust) {
+    sections.push({ heading: "For Combustion (Venus close to the Sun)", items: REMEDY_COMBUST_EXTRA });
+  }
+  if (chart.retrograde) {
+    sections.push({ heading: "For Retrograde Venus", items: REMEDY_RETROGRADE_EXTRA });
+  }
+  if (chart.ownNakshatra) {
+    sections.push({ heading: "Bonus: Own Nakshatra", items: [REMEDY_OWN_NAKSHATRA_NOTE] });
+  }
+
+  return sections;
+}
+
+// ---------------------------------------------------------------------
+// EXECUTIVE SUMMARY, LUCKY POINTERS, CAREER, COMPATIBILITY, YANTRA
+// Added to close the gap with commercial Venus/wealth astrology reports,
+// which nearly always include: a personalized opening summary tying the
+// whole chart together, concrete lucky-day/color/number pointers, career
+// guidance, compatibility info, and a yantra alongside the gemstone.
+// Without these, the report reads like two separate sign lookups rather
+// than something written for the specific reader.
+// ---------------------------------------------------------------------
+
+export const LUCKY_POINTERS = {
+  Aries: { day: "Tuesday", colors: "Red, Orange", numbers: "1, 9", direction: "East" },
+  Taurus: { day: "Friday", colors: "Green, Pink", numbers: "2, 6", direction: "South-East" },
+  Gemini: { day: "Wednesday", colors: "Yellow, Light Green", numbers: "3, 5", direction: "South" },
+  Cancer: { day: "Monday", colors: "White, Silver", numbers: "2, 7", direction: "North-West" },
+  Leo: { day: "Sunday", colors: "Gold, Orange", numbers: "1, 4", direction: "East" },
+  Virgo: { day: "Wednesday", colors: "Green, Brown", numbers: "5, 6", direction: "South" },
+  Libra: { day: "Friday", colors: "Blue, Pastel Pink", numbers: "6, 9", direction: "South-East" },
+  Scorpio: { day: "Tuesday", colors: "Maroon, Black", numbers: "8, 9", direction: "North" },
+  Sagittarius: { day: "Thursday", colors: "Purple, Yellow", numbers: "3, 9", direction: "North-East" },
+  Capricorn: { day: "Saturday", colors: "Black, Grey", numbers: "4, 8", direction: "West" },
+  Aquarius: { day: "Saturday", colors: "Electric Blue, Grey", numbers: "4, 7", direction: "West" },
+  Pisces: { day: "Thursday", colors: "Sea Green, Lavender", numbers: "3, 7", direction: "North-East" },
+};
+
+export const CAREER_PATHS = {
+  Aries: "Fast-moving, competitive, or pioneering fields suit this placement best -- sales, sports, entrepreneurship, or any role that rewards initiative over patience.",
+  Taurus: "Anything building tangible, lasting value: finance, real estate, banking, luxury goods, food, or the arts -- this placement has a genuine eye for what holds worth.",
+  Gemini: "Communication-heavy work rewards this placement most -- writing, media, sales, teaching, or any role with variety rather than repetition.",
+  Cancer: "Work connected to home, family, food, hospitality, or caregiving tends to feel most rewarding -- and often pays best -- for this placement.",
+  Leo: "Public-facing, creative, or leadership roles suit this placement -- performance, design, management, or anything with visible recognition attached.",
+  Virgo: "Detail-oriented, analytical, or service-based work is a strong fit -- accounting, healthcare, editing, quality control, or consulting.",
+  Libra: "Anything involving balance, aesthetics, or negotiation suits this placement -- law, design, diplomacy, HR, or partnership-based business.",
+  Scorpio: "Research, investigation, psychology, finance, or any work involving depth and transformation rewards this placement's intensity.",
+  Sagittarius: "Teaching, travel, publishing, law, or anything expansive and philosophical suits this placement's need for meaning and freedom.",
+  Capricorn: "Structured, long-term-focused fields reward this placement best -- management, government, real estate, or traditional corporate ladders.",
+  Aquarius: "Innovative, tech, humanitarian, or group-oriented work suits this placement -- it does best when the work serves a larger idea or community.",
+  Pisces: "Creative, healing, or spiritually-oriented work suits this placement -- art, music, therapy, film, or charitable/nonprofit work.",
+};
+
+export const COMPATIBLE_SIGNS = {
+  Aries: ["Leo", "Sagittarius", "Gemini", "Aquarius"],
+  Taurus: ["Virgo", "Capricorn", "Cancer", "Pisces"],
+  Gemini: ["Libra", "Aquarius", "Aries", "Leo"],
+  Cancer: ["Scorpio", "Pisces", "Taurus", "Virgo"],
+  Leo: ["Aries", "Sagittarius", "Gemini", "Libra"],
+  Virgo: ["Taurus", "Capricorn", "Cancer", "Scorpio"],
+  Libra: ["Gemini", "Aquarius", "Leo", "Sagittarius"],
+  Scorpio: ["Cancer", "Pisces", "Virgo", "Capricorn"],
+  Sagittarius: ["Aries", "Leo", "Libra", "Aquarius"],
+  Capricorn: ["Taurus", "Virgo", "Scorpio", "Pisces"],
+  Aquarius: ["Gemini", "Libra", "Sagittarius", "Aries"],
+  Pisces: ["Cancer", "Scorpio", "Taurus", "Capricorn"],
+};
+
+export const YANTRA = {
+  primary: "The Shukra Yantra (or a Shri Yantra, its more widely available equivalent) is the traditional geometric tool for strengthening Venus.",
+  usage: "Place it facing east in your home or workspace, keep it clean, and offer it a moment of attention -- a flower, incense, or simply quiet acknowledgment -- each Friday alongside your mantra practice.",
+};
+
+/**
+ * A short, personalized opening paragraph that ties the Western and Vedic
+ * findings together in plain language -- written for this specific chart
+ * rather than reading like two separate sign lookups.
+ * @param {{name?:string}} birthData
+ * @param {object} chart - result of computeVenusChart()
+ */
+export function buildExecutiveSummary(birthData, chart) {
+  const who = birthData?.name ? birthData.name : "you";
+  const strengthWord = chart.score >= 75 ? "strong" : chart.score >= 50 ? "workable" : "challenged";
+  const conditionBits = [];
+  if (chart.combust) conditionBits.push("currently combust (close to the Sun)");
+  if (chart.retrograde) conditionBits.push("retrograde");
+  const conditionText = conditionBits.length
+    ? ` It is also ${conditionBits.join(" and ")}, both of which shape how it expresses itself.`
+    : "";
+
+  return `For ${who}, Venus falls in ${chart.westernSign} in Western astrology and in ${chart.vedicSign} `
+    + `(${chart.nakshatra} nakshatra, pada ${chart.pada}) in Vedic astrology -- a ${chart.dignity.label.toLowerCase()} `
+    + `placement that comes out to a ${strengthWord} overall strength score of ${chart.score}/100.${conditionText} `
+    + `In practical terms, this placement shapes how ${who === "you" ? "you" : who} approach`
+    + `${who === "you" ? "" : "es"} love, money, and self-worth more than almost any other single factor in the `
+    + `chart -- the sections below break down exactly what that means for love, wealth, and health, followed by `
+    + `remedies chosen specifically for this placement's actual condition.`;
+}
+
+export const REMEDY_REIKI = [
+  "A Reiki self-treatment or session from a trained practitioner, directed specifically at the heart chakra (Anahata) and sacral chakra (Svadhisthana) -- the energy centers traditionally associated with love, relationships, and pleasure that align most closely with Venus's domain.",
+  "If self-practicing: rest your hands over your heart center for a few quiet minutes on Fridays, setting a simple intention around love, self-worth, or abundance rather than a specific outcome.",
+  "Reiki is a complementary energy practice, not a substitute for the mantra and charity-based remedies above, and not a substitute for professional medical or mental health care -- use it alongside them, not instead of them.",
+];

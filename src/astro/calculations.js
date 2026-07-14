@@ -132,3 +132,45 @@ export function computeVenusChart(birth) {
     venusLonTropical, venusLonSidereal, ascTropical, ascSidereal, ayanamsa,
   };
 }
+
+/**
+ * Compares today's real-time Venus position against this chart's natal
+ * Venus sign to give a simple, honest timing note -- the one thing every
+ * commercial astrology report includes (some window of "here's what's
+ * happening for you right now / soon") that a pure natal-only report
+ * lacks. Uses the angular distance between current and natal sign
+ * (classic aspect logic: conjunction/trine/sextile = supportive,
+ * square/opposition = friction) rather than a full transit/dasha engine,
+ * which is out of scope here -- framed as a general seasonal indicator,
+ * not a precise prediction.
+ * @param {string} natalWesternSign - chart.westernSign from computeVenusChart()
+ * @param {Date} [now] - defaults to the current date/time
+ */
+export function computeCurrentVenusTransit(natalWesternSign, now = new Date()) {
+  const currentLon = venusEclipticLongitude(now);
+  const currentSignIdx = signIndex(currentLon);
+  const currentSign = SIGNS[currentSignIdx];
+  const natalSignIdx = SIGNS.indexOf(natalWesternSign);
+
+  const signsApart = ((currentSignIdx - natalSignIdx + 12) % 12);
+
+  let label, note;
+  if (signsApart === 0) {
+    label = "Venus Return";
+    note = "Transiting Venus is currently back in your natal Venus sign -- traditionally considered a personal 'Venus return,' a favorable window (roughly a few weeks, once a year) for refreshing intentions around love, money, and self-worth.";
+  } else if (signsApart === 4 || signsApart === 8) {
+    label = "Supportive (Trine)";
+    note = "Transiting Venus is currently in a harmonious trine to your natal Venus -- generally an easier-than-average stretch for love and money matters, worth using for follow-through rather than waiting.";
+  } else if (signsApart === 3 || signsApart === 9) {
+    label = "Friction (Square)";
+    note = "Transiting Venus is currently square your natal Venus -- traditionally a mildly friction-prone stretch for relationships and spending; a good window to lean on the remedies above rather than force new decisions.";
+  } else if (signsApart === 6) {
+    label = "Tension (Opposition)";
+    note = "Transiting Venus is currently opposite your natal Venus -- traditionally calls for extra balance in partnerships and finances; avoid one-sided decisions in either direction this stretch.";
+  } else {
+    label = "Neutral";
+    note = "Transiting Venus is not in an especially strong or weak angle to your natal Venus right now -- a fairly ordinary stretch, best used for steady practice of the remedies above rather than expecting a major shift either way.";
+  }
+
+  return { currentSign, natalSign: natalWesternSign, signsApart, label, note };
+}

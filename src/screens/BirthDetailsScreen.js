@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import {
-  View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, Platform, Alert,
+  View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { geocodePlace } from "../services/geocode";
+import { showAlert } from "../utils/alert";
 import { COUNTRIES } from "../services/pricing";
 import { useAuth } from "../context/AuthContext";
 
@@ -64,7 +65,7 @@ export default function BirthDetailsScreen({ navigation }) {
   function handleSubmit() {
     const err = validate();
     if (err) {
-      Alert.alert("Missing details", err);
+      showAlert("Missing details", err);
       return;
     }
     const [y, mo, d] = dob.split("-").map(Number);
@@ -79,10 +80,17 @@ export default function BirthDetailsScreen({ navigation }) {
       navigation.navigate("Login", { birthData });
       return;
     }
+    // push() (not navigate()) is deliberate: navigate() reuses an
+    // already-mounted screen instance if "Report"/"Payment" already exists
+    // somewhere in the stack (e.g. you generated a report earlier in this
+    // session), which meant useMemo(() => computeVenusChart(birthData), ...)
+    // never re-ran for a second, different birth date -- you'd keep seeing
+    // the first report's numbers no matter what you entered. push() always
+    // mounts a fresh screen instance so the new birthData is always used.
     if (profile?.isAdmin || (profile?.credits ?? 0) > 0) {
-      navigation.navigate("Report", { birthData });
+      navigation.push("Report", { birthData });
     } else {
-      navigation.navigate("Payment", { birthData });
+      navigation.push("Payment", { birthData });
     }
   }
 

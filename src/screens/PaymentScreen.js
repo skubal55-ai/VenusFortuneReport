@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import { computePricing as computePricingLocal } from "../services/pricing";
 import { payWithRazorpay, createStripeIntent, confirmStripePayment, fetchPricing } from "../services/payments";
 import { useAuth } from "../context/AuthContext";
+import { showAlert } from "../utils/alert";
+import AccountBar from "../components/AccountBar";
 
 export default function PaymentScreen({ navigation, route }) {
   const { birthData } = route.params;
@@ -47,7 +49,7 @@ export default function PaymentScreen({ navigation, route }) {
           await refreshProfile();
           navigation.replace("Report", { birthData });
         } else {
-          Alert.alert("Payment could not be verified", "Please try again or contact support.");
+          showAlert("Payment could not be verified", "Please try again or contact support.");
         }
       } else {
         const { clientSecret } = await createStripeIntent({ countryCode: birthData.countryCode });
@@ -60,7 +62,7 @@ export default function PaymentScreen({ navigation, route }) {
         const presentResult = await stripe.presentPaymentSheet();
         if (presentResult.error) {
           if (presentResult.error.code !== "Canceled") {
-            Alert.alert("Payment failed", presentResult.error.message);
+            showAlert("Payment failed", presentResult.error.message);
           }
           return;
         }
@@ -71,11 +73,11 @@ export default function PaymentScreen({ navigation, route }) {
           await refreshProfile();
           navigation.replace("Report", { birthData });
         } else {
-          Alert.alert("Payment could not be verified", "Please try again or contact support.");
+          showAlert("Payment could not be verified", "Please try again or contact support.");
         }
       }
     } catch (e) {
-      Alert.alert("Payment error", e.message || String(e));
+      showAlert("Payment error", e.message || String(e));
     } finally {
       setBusy(false);
     }
@@ -83,6 +85,7 @@ export default function PaymentScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
+      <AccountBar navigation={navigation} />
       <Text style={styles.title}>Unlock Your Venus Report</Text>
       <Text style={styles.subtitle}>
         A one-time payment unlocks your full report (detailed analysis + remedies) and enables PDF download.

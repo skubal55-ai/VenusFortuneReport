@@ -32,6 +32,14 @@ export async function verifyFirebaseToken(authHeader: string | null): Promise<Fi
   const { payload } = await jwtVerify(token, JWKS, {
     issuer: `https://securetoken.google.com/${PROJECT_ID}`,
     audience: PROJECT_ID,
+    // Firebase issues the token using its own servers' clock, and this
+    // function verifies it using Supabase Edge Functions' clock -- a few
+    // seconds of drift between two different providers' clocks is normal,
+    // but jose's default clockTolerance is 0, so even 1-2 seconds of skew
+    // throws "JWT issued at future" / "JWT expired" for a perfectly valid
+    // token. 60s comfortably absorbs realistic clock drift without
+    // meaningfully weakening expiry enforcement (tokens are valid ~1 hour).
+    clockTolerance: 60,
   });
 
   if (!payload.sub) {
