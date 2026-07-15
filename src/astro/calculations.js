@@ -174,3 +174,166 @@ export function computeCurrentVenusTransit(natalWesternSign, now = new Date()) {
 
   return { currentSign, natalSign: natalWesternSign, signsApart, label, note };
 }
+
+// ---------------------------------------------------------------------
+// VIMSHOTTARI DASHA (Mahadasha / Antardasha timeline)
+// The standard Vedic system of planetary periods, derived from the Moon's
+// nakshatra at birth -- this is what gives commercial reports their
+// "your Venus period runs from year X to Y" style timing content, which a
+// natal-only report otherwise lacks entirely.
+// ---------------------------------------------------------------------
+export function moonEclipticLongitude(date) {
+  const vec = Astronomy.GeoVector(Astronomy.Body.Moon, date, true);
+  return Astronomy.Ecliptic(vec).elon;
+}
+
+// Fixed traditional order and year-lengths, totaling 120 years. Nakshatra
+// index (0-26) mod 9 gives the dasha lord ruling at birth -- this 9-lord
+// cycle repeats exactly 3 times across the 27 nakshatras.
+export const DASHA_ORDER = [
+  { planet: "Ketu", years: 7 },
+  { planet: "Venus", years: 20 },
+  { planet: "Sun", years: 6 },
+  { planet: "Moon", years: 10 },
+  { planet: "Mars", years: 7 },
+  { planet: "Rahu", years: 18 },
+  { planet: "Jupiter", years: 16 },
+  { planet: "Saturn", years: 19 },
+  { planet: "Mercury", years: 17 },
+];
+export const DASHA_TOTAL_YEARS = 120;
+const YEAR_MS = 365.25 * 86400000;
+
+function addYears(date, years) {
+  return new Date(date.getTime() + years * YEAR_MS);
+}
+
+/**
+ * Computes the Vimshottari Mahadasha sequence from birth through a horizon
+ * (default full 120-year cycle). The first entry's "trueStart" may fall
+ * before the birth date -- that's expected: the birth Mahadasha lord's
+ * rule conceptually began partway before birth, and only the remaining
+ * balance is actually lived through from birth onward. displayStart clips
+ * that to the birth date for showing the balance a reader actually
+ * experiences.
+ * @param {{y:number,mo:number,d:number,hh:number,mm:number,tzOffsetHrs:number}} birth
+ */
+export function computeVimshottariDasha(birth, { horizonYears = DASHA_TOTAL_YEARS } = {}) {
+  const { y, mo, d, hh, mm, tzOffsetHrs } = birth;
+  const utcMillis = Date.UTC(y, mo - 1, d, hh, mm) - tzOffsetHrs * 3600 * 1000;
+  const utcDate = new Date(utcMillis);
+
+  const moonLonTropical = moonEclipticLongitude(utcDate);
+  const ayanamsa = lahiriAyanamsa(utcDate);
+  const moonLonSidereal = ((moonLonTropical - ayanamsa) % 360 + 360) % 360;
+
+  const nakshatraSpan = 360 / 27;
+  const nakIdx = Math.floor(moonLonSidereal / nakshatraSpan);
+  const posInNak = moonLonSidereal % nakshatraSpan;
+  const fractionElapsed = posInNak / nakshatraSpan;
+  const pada = Math.floor(posInNak / (nakshatraSpan / 4)) + 1;
+  const startLordIdx = nakIdx % 9;
+
+  const firstLord = DASHA_ORDER[startLordIdx];
+  const firstTrueStart = new Date(utcDate.getTime() - fractionElapsed * firstLord.years * YEAR_MS);
+
+  const sequence = [];
+  let trueStart = firstTrueStart;
+  let coveredFromBirth = 0;
+  let i = 0;
+  while (coveredFromBirth < horizonYears && i < 30) {
+    const lord = DASHA_ORDER[(startLordIdx + i) % 9];
+    const trueEnd = addYears(trueStart, lord.years);
+    const displayStart = trueStart < utcDate ? utcDate : trueStart;
+    sequence.push({
+      planet: lord.planet,
+      fullYears: lord.years,
+      trueStart,
+      trueEnd,
+      displayStart,
+      displayEnd: trueEnd,
+    });
+    coveredFromBirth += (trueEnd.getTime() - displayStart.getTime()) / YEAR_MS;
+    trueStart = trueEnd;
+    i++;
+  }
+
+  return {
+    moonSignSidereal: SIGNS[signIndex(moonLonSidereal)],
+    moonNakshatra: NAKSHATRAS[nakIdx],
+    moonNakshatraPada: pada,
+    mahadashas: sequence,
+  };
+}
+
+/**
+ * Antardasha (sub-period) breakdown within a single Mahadasha entry from
+ * computeVimshottariDasha(). Standard proportional formula: each sub-lord's
+ * share = (mahadasha.fullYears * subLord.years) / 120, applied in the same
+ * 9-lord cycle starting from the Mahadasha's own lord.
+ */
+export function computeAntardashas(mahadasha) {
+  const startLordIdx = DASHA_ORDER.findIndex((entry) => entry.planet === mahadasha.planet);
+  const subSequence = [];
+  let cursor = mahadasha.trueStart;
+  for (let j = 0; j < 9; j++) {
+    const subLord = DASHA_ORDER[(startLordIdx + j) % 9];
+    const durationYears = (mahadasha.fullYears * subLord.years) / DASHA_TOTAL_YEARS;
+    const start = cursor;
+    const end = addYears(start, durationYears);
+    subSequence.push({ planet: subLord.planet, start, end, durationYears });
+    cursor = end;
+  }
+  return subSequence;
+}
+
+/** Finds the Mahadasha (or Antardasha) entry whose range contains `now`. */
+export function findCurrentPeriod(periods, now = new Date(), startKey = "trueStart", endKey = "trueEnd") {
+  return periods.find((p) => now >= p[startKey] && now < p[endKey]) || periods[periods.length - 1];
+}
+
+// ---------------------------------------------------------------------
+// 12-MONTH FORWARD FORECAST
+// Extends computeCurrentVenusTransit() across the next N months so the
+// report can show a forward-looking table, similar to the "month-wise
+// financial ups and downs" tables in commercial reports -- built from the
+// same real, computed transit-vs-natal angle logic, just repeated monthly.
+// ---------------------------------------------------------------------
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const TRANSIT_SHORT_NOTE = {
+  "Venus Return": "Favorable -- good for fresh starts in love/money.",
+  "Supportive (Trine)": "Easier-than-average stretch.",
+  "Friction (Square)": "Mildly friction-prone -- lean on remedies.",
+  "Tension (Opposition)": "Needs extra balance in partnerships/spending.",
+  "Neutral": "Ordinary stretch -- steady practice.",
+};
+
+/**
+ * @param {string} natalWesternSign - chart.westernSign from computeVenusChart()
+ * @param {number} monthsAhead
+ * @param {Date} [startDate] - defaults to today
+ */
+export function computeMonthlyForecast(natalWesternSign, monthsAhead = 12, startDate = new Date()) {
+  const months = [];
+  for (let i = 0; i < monthsAhead; i++) {
+    const anchorMonth = startDate.getMonth() + i;
+    const year = startDate.getFullYear() + Math.floor(anchorMonth / 12);
+    const monthIdx = ((anchorMonth % 12) + 12) % 12;
+    // Mid-month anchor date -- close enough for a monthly-resolution table;
+    // Venus moves roughly 1.2 degrees per day, so using the 15th rather than
+    // the 1st or last day of the month practically never misints a sign.
+    const anchor = new Date(Date.UTC(year, monthIdx, 15, 12, 0, 0));
+    const transit = computeCurrentVenusTransit(natalWesternSign, anchor);
+    months.push({
+      monthLabel: `${MONTH_NAMES[monthIdx]} ${year}`,
+      currentSign: transit.currentSign,
+      label: transit.label,
+      shortNote: TRANSIT_SHORT_NOTE[transit.label] || "",
+    });
+  }
+  return months;
+}

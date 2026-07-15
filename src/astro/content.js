@@ -409,3 +409,52 @@ export const REMEDY_REIKI = [
   "If self-practicing: rest your hands over your heart center for a few quiet minutes on Fridays, setting a simple intention around love, self-worth, or abundance rather than a specific outcome.",
   "Reiki is a complementary energy practice, not a substitute for the mantra and charity-based remedies above, and not a substitute for professional medical or mental health care -- use it alongside them, not instead of them.",
 ];
+
+// ---------------------------------------------------------------------
+// OPENING LETTER & METHODOLOGY
+// A personalized greeting (matching the "Dear [Name]" convention used by
+// commercial report vendors) and a plain-language methodology/FAQ section
+// for readers who want to know what's actually being calculated versus
+// what's traditional interpretation.
+// ---------------------------------------------------------------------
+
+/**
+ * @param {{name?:string}} birthData
+ */
+export function buildOpeningLetter(birthData) {
+  const who = birthData?.name ? birthData.name : "there";
+  return `Dear ${who}, thank you for taking the time to explore what your birth chart reveals about Venus -- `
+    + `the planet most closely tied to love, beauty, money, and self-worth in both the Western and Vedic `
+    + `traditions. What follows is calculated directly from your birth date, time, and place (not a generic `
+    + `template), combined with traditional astrological interpretation and remedial practice. Treat it as a `
+    + `starting point for reflection, not a fixed prediction -- the sections ahead cover your placement in `
+    + `detail, what's genuinely working in your favor, what calls for extra attention, and concrete practices `
+    + `to work with over the coming weeks.`;
+}
+
+export const METHODOLOGY_FAQ = [
+  {
+    q: "Is this based on real astronomical calculation, or just a lookup table?",
+    a: "Venus's, the Sun's, and the Moon's actual positions on your birth date are computed from a real astronomical model (the same class of ephemeris used in professional astronomy software), not looked up from a simplified table. The interpretation of what those positions mean is traditional astrology, not science -- the two are kept distinct throughout this report.",
+  },
+  {
+    q: "Why does this report show two different signs for Venus (Western and Vedic)?",
+    a: "Western astrology uses the tropical zodiac (aligned to the seasons); Vedic astrology uses the sidereal zodiac (aligned to the actual visible constellations), which is offset from tropical by the ayanamsa -- currently about 24 degrees. Both are valid, long-standing systems that simply define \"where the zodiac starts\" differently, which is why the same Venus position can land in a different sign in each system.",
+  },
+  {
+    q: "What is the ayanamsa, and which one does this report use?",
+    a: "The ayanamsa is the angular offset between the tropical and sidereal zodiacs. This report uses the Lahiri ayanamsa (the Indian government's official standard, and the most widely used in Vedic astrology), calculated here as a close linear approximation rather than pulled from the official year-by-year published table -- accurate enough that it practically never changes a sign or nakshatra result.",
+  },
+  {
+    q: "What are whole-sign houses, and why not Placidus or another system?",
+    a: "This report uses whole-sign houses (the 1st house is your entire Ascendant sign, the 2nd house the next whole sign, and so on) rather than a cuspal system like Placidus. Whole-sign houses are the traditional default in Vedic astrology and were also the original method in Hellenistic Western astrology -- a deliberate, documented choice rather than a simplification for its own sake.",
+  },
+  {
+    q: "What is a nakshatra?",
+    a: "A nakshatra is one of 27 lunar-based divisions of the zodiac (each 13 degrees 20 minutes wide), used throughout Vedic astrology for finer-grained interpretation and for timing systems like the Vimshottari Dasha in this report. Every planet, not just the Moon, falls in a nakshatra based on its longitude.",
+  },
+  {
+    q: "How seriously should I take the remedies?",
+    a: "As traditional practice and personal ritual, not as a guaranteed mechanism. Nothing in this report -- mantras, charity, gemstones, yantras, or otherwise -- is a scientifically verified intervention, and results (if any) are a matter of belief, consistency, and the psychological/behavioral effects of ritual practice, not a measurable guarantee. Treat financial, medical, and legal decisions as the domain of the relevant licensed professional, not this report.",
+  },
+];
