@@ -57,6 +57,14 @@ export default function ReportScreen({ route, navigation }) {
   }, []);
 
   const chart = useMemo(() => computeVenusChart(birthData), [birthData]);
+  // These two must stay above the early returns below: hooks have to run in
+  // the same order/count on every render, but status starts as "checking"
+  // and only reaches "allowed" on a later render, so if these lived after
+  // the early returns they'd be skipped on that first render and then
+  // called on the next one -- that mismatch is what threw "Rendered more
+  // hooks than during the previous render."
+  const dasha = useMemo(() => computeVimshottariDasha(birthData), [birthData]);
+  const monthlyForecast = useMemo(() => computeMonthlyForecast(chart.westernSign), [chart.westernSign]);
 
   if (status === "checking") {
     return (
@@ -98,11 +106,9 @@ export default function ReportScreen({ route, navigation }) {
   const ascSignIdx = signIndex(chart.ascSidereal);
   const venusSignIdx = signIndex(chart.venusLonSidereal);
 
-  const dasha = useMemo(() => computeVimshottariDasha(birthData), [birthData]);
   const currentMahadasha = findCurrentPeriod(dasha.mahadashas);
   const antardashas = computeAntardashas(currentMahadasha);
   const currentAntardasha = findCurrentPeriod(antardashas, new Date(), "start", "end");
-  const monthlyForecast = useMemo(() => computeMonthlyForecast(chart.westernSign), [chart.westernSign]);
 
   async function handleDownloadPdf() {
     const html = buildReportHtml(birthData, chart, western, vedic, {
@@ -319,9 +325,11 @@ export default function ReportScreen({ route, navigation }) {
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Targeted Remedies for Your Venus Condition</Text>
         <Text style={styles.paragraph}>
-          The practices below are chosen specifically for what this chart shows about Venus -- its dignity, and
-          whether it's combust or retrograde -- rather than being generic. Follow these alongside (not instead of)
-          the universal daily/weekly practices further down.
+          The practices below are chosen specifically for what this chart shows about Venus -- its dignity, whether
+          it's combust or retrograde, and the house it occupies -- rather than being generic. Each house-based
+          section pairs a traditional remedy, a practical modern equivalent, and a mantra/spiritual/Reiki practice
+          specific to that house. Follow these alongside (not instead of) the universal daily/weekly practices
+          further down.
         </Text>
         {targetedRemedies.map((section, i) => (
           <View key={i}>
@@ -445,132 +453,301 @@ function buildReportHtml(birthData, chart, western, vedic, extra) {
     executiveSummary, openingLetter, lucky, career, compatible, transit, targetedRemedies,
     ascSignIdx, venusSignIdx, dasha, currentMahadasha, antardashas, currentAntardasha, monthlyForecast,
   } = extra;
+
   const targetedHtml = targetedRemedies.map((section) => `
-    <h3>${section.heading}</h3>
-    <ul>${section.items.map((t) => `<li>${t}</li>`).join("")}</ul>
+    <div class="remedy-card avoid-break">
+      <h3>${section.heading}</h3>
+      <ul class="remedy-list">${section.items.map((t) => `<li>${t}</li>`).join("")}</ul>
+    </div>
   `).join("");
 
   const mahadashaRows = dasha.mahadashas.map((md) => {
     const isCurrent = md === currentMahadasha;
-    return `<tr style="${isCurrent ? "background:#f6e4ea;font-weight:bold;" : ""}">`
-      + `<td style="padding:4px 8px;border:1px solid #e7d9c4;">${isCurrent ? "&#9654; " : ""}${md.planet}</td>`
-      + `<td style="padding:4px 8px;border:1px solid #e7d9c4;">${formatYearMonth(md.displayStart)} - ${formatYearMonth(md.displayEnd)}</td>`
+    return `<tr class="${isCurrent ? "current" : ""}">`
+      + `<td>${isCurrent ? "&#9654; " : ""}${md.planet}</td>`
+      + `<td>${formatYearMonth(md.displayStart)} &ndash; ${formatYearMonth(md.displayEnd)}</td>`
       + `</tr>`;
   }).join("");
 
   const antardashaRows = antardashas.map((ad) => {
     const isCurrent = ad === currentAntardasha;
-    return `<tr style="${isCurrent ? "background:#f6e4ea;font-weight:bold;" : ""}">`
-      + `<td style="padding:4px 8px;border:1px solid #e7d9c4;">${isCurrent ? "&#9654; " : ""}${currentMahadasha.planet} / ${ad.planet}</td>`
-      + `<td style="padding:4px 8px;border:1px solid #e7d9c4;">${formatYearMonth(ad.start)} - ${formatYearMonth(ad.end)}</td>`
+    return `<tr class="${isCurrent ? "current" : ""}">`
+      + `<td>${isCurrent ? "&#9654; " : ""}${currentMahadasha.planet} / ${ad.planet}</td>`
+      + `<td>${formatYearMonth(ad.start)} &ndash; ${formatYearMonth(ad.end)}</td>`
       + `</tr>`;
   }).join("");
 
   const monthlyRows = monthlyForecast.map((m) =>
-    `<tr><td style="padding:4px 8px;border:1px solid #e7d9c4;">${m.monthLabel}</td>`
-    + `<td style="padding:4px 8px;border:1px solid #e7d9c4;">${m.currentSign}</td>`
-    + `<td style="padding:4px 8px;border:1px solid #e7d9c4;">${m.label}</td>`
-    + `<td style="padding:4px 8px;border:1px solid #e7d9c4;">${m.shortNote}</td></tr>`
+    `<tr><td>${m.monthLabel}</td><td>${m.currentSign}</td><td>${m.label}</td><td>${m.shortNote}</td></tr>`
   ).join("");
 
-  const faqHtml = METHODOLOGY_FAQ.map((item) => `<p><b>${item.q}</b><br/>${item.a}</p>`).join("");
+  const faqHtml = METHODOLOGY_FAQ.map((item) => `
+    <div class="card avoid-break">
+      <h3>${item.q}</h3>
+      <p>${item.a}</p>
+    </div>
+  `).join("");
+
+  const universalCard = (title, listHtml) => `
+    <div class="card avoid-break">
+      <h3>${title}</h3>
+      ${listHtml}
+    </div>
+  `;
 
   return `
-    <html><body style="font-family: Georgia, serif; padding: 24px; color:#2b2320;">
-      <h1 style="color:#c76b8a;">${birthData.name ? birthData.name + "'s" : "Your"} Venus Report</h1>
-      <p>Born ${birthData.y}-${birthData.mo}-${birthData.d} at ${birthData.hh}:${birthData.mm} ${birthData.place || ""}</p>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <style>
+        @page { margin: 40pt 44pt; }
+        * { box-sizing: border-box; }
+        body {
+          font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+          color: #2b2320;
+          background: #fdf6ec;
+          margin: 0;
+          padding: 0;
+          line-height: 1.6;
+          font-size: 13px;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; margin: 0; }
+        p { margin: 0 0 10px; }
+        a { color: #c76b8a; }
 
-      <div style="page-break-after:always;">
-        <p style="font-style:italic;">${openingLetter}</p>
-        <h2>Table of Contents</h2>
-        <ol>
-          <li><a href="#summary">Your Venus at a Glance</a></li>
-          <li><a href="#snapshot">Snapshot</a></li>
-          <li><a href="#chart">Your Vedic Birth Chart</a></li>
-          <li><a href="#western">Western View</a></li>
-          <li><a href="#vedic">Vedic View</a></li>
-          <li><a href="#career">Career &amp; Compatibility</a></li>
-          <li><a href="#transit">Venus Right Now</a></li>
-          <li><a href="#dasha">Vimshottari Dasha</a></li>
-          <li><a href="#forecast">12-Month Forward Outlook</a></li>
-          <li><a href="#targeted">Targeted Remedies</a></li>
-          <li><a href="#universal">Universal Remedies</a></li>
-          <li><a href="#methodology">How This Report Was Prepared</a></li>
-          <li><a href="#action">Your Action Plan</a></li>
-        </ol>
+        .page-break { page-break-after: always; }
+        .avoid-break { page-break-inside: avoid; }
+
+        .cover { text-align: center; padding: 50px 20px 30px; }
+        .cover-eyebrow {
+          letter-spacing: 3px; font-size: 11px; color: #b8860b; text-transform: uppercase;
+          font-weight: bold; margin-bottom: 14px;
+        }
+        .cover h1 { font-size: 30px; color: #c76b8a; margin-bottom: 8px; }
+        .cover .meta { color: #7a6f63; font-size: 13px; margin-bottom: 24px; }
+        .divider { height: 3px; width: 60px; background: #c76b8a; margin: 4px auto 26px; border-radius: 2px; }
+        .opening-letter {
+          max-width: 560px; margin: 0 auto; font-style: italic; color: #4a4038; font-size: 13.5px;
+          line-height: 1.85; border-top: 1px solid #e7d9c4; border-bottom: 1px solid #e7d9c4; padding: 22px 8px;
+        }
+
+        .toc h2 { margin-bottom: 14px; }
+        .toc ol { list-style: none; counter-reset: toc; padding: 0; margin: 0 auto; max-width: 480px; }
+        .toc li { counter-increment: toc; padding: 8px 2px; border-bottom: 1px dashed #e7d9c4; display: flex; }
+        .toc li::before { content: counter(toc) "."; color: #b8860b; font-weight: bold; width: 26px; flex-shrink: 0; }
+        .toc a { text-decoration: none; color: #2b2320; }
+
+        section { padding: 6px 40px 28px; }
+        .section-title {
+          font-size: 18px; color: #c76b8a; border-bottom: 2px solid #f0d9e2; padding-bottom: 8px; margin-bottom: 14px;
+        }
+        .section-title .num { color: #b8860b; margin-right: 6px; }
+        .lead {
+          font-size: 13.5px; font-style: italic; color: #4a4038; background: #fffaf3;
+          border-left: 3px solid #c76b8a; padding: 12px 16px; border-radius: 0 8px 8px 0;
+        }
+
+        .stat-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 18px; }
+        .stat { background: #f6e4ea; border-radius: 10px; padding: 10px 14px; width: calc(50% - 5px); }
+        .stat-k { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #a06b7e; }
+        .stat-v { display: block; font-size: 14px; font-weight: bold; color: #2b2320; margin-top: 2px; }
+
+        .pill {
+          display: inline-block; background: #c76b8a; color: #fff; font-size: 11px; font-weight: bold;
+          padding: 3px 12px; border-radius: 20px;
+        }
+
+        .score-wrap { margin: 4px 0 6px; }
+        .score-label { font-size: 12px; color: #7a6f63; margin-bottom: 5px; }
+        .score-track { background: #e7d9c4; border-radius: 8px; height: 10px; overflow: hidden; }
+        .score-fill { background: #c76b8a; height: 100%; border-radius: 8px; }
+
+        table.data-table { width: 100%; border-collapse: collapse; margin: 8px 0 20px; font-size: 12px; }
+        table.data-table th {
+          background: #f6e4ea; color: #8a4a63; text-align: left; padding: 7px 10px; border: 1px solid #e7d9c4;
+          font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        table.data-table td { padding: 7px 10px; border: 1px solid #e7d9c4; }
+        table.data-table tr:nth-child(even) td { background: #fffaf3; }
+        table.data-table tr.current td { background: #f6e4ea; font-weight: bold; }
+
+        .card {
+          background: #fffaf3; border: 1px solid #e7d9c4; border-radius: 10px; padding: 14px 18px; margin-bottom: 14px;
+        }
+        .card h3 { font-size: 14px; color: #8a4a63; margin-bottom: 8px; }
+        .card p:last-child { margin-bottom: 0; }
+
+        .remedy-card {
+          border-left: 4px solid #c76b8a; background: #fffaf3; border-radius: 0 10px 10px 0;
+          padding: 12px 18px; margin-bottom: 14px;
+        }
+        .remedy-card h3 { font-size: 14px; color: #8a4a63; margin-bottom: 8px; }
+        ul.remedy-list, .card ul { margin: 0; padding-left: 18px; }
+        ul.remedy-list li, .card ul li { margin-bottom: 6px; }
+
+        .chart-wrap { text-align: center; }
+        .chart-wrap table { margin: 0 auto; }
+        .chart-caption { font-size: 11px; color: #7a6f63; margin-top: 8px; }
+
+        .action-box { background: #f6e4ea; border-radius: 10px; padding: 16px 20px; font-size: 13px; }
+
+        .disclaimer {
+          font-size: 10.5px; color: #7a6f63; margin: 30px 40px 20px; border-top: 1px solid #e7d9c4; padding-top: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="cover page-break">
+        <div class="cover-eyebrow">Venus Report</div>
+        <h1>${birthData.name ? birthData.name + "'s" : "Your"} Venus Report</h1>
+        <div class="divider"></div>
+        <p class="meta">Born ${birthData.y}-${String(birthData.mo).padStart(2, "0")}-${String(birthData.d).padStart(2, "0")}
+          at ${String(birthData.hh).padStart(2, "0")}:${String(birthData.mm).padStart(2, "0")} ${birthData.place || ""}</p>
+        <p class="opening-letter">${openingLetter}</p>
+        <div class="toc">
+          <h2>Table of Contents</h2>
+          <ol>
+            <li><a href="#summary">Your Venus at a Glance</a></li>
+            <li><a href="#snapshot">Snapshot</a></li>
+            <li><a href="#chart">Your Vedic Birth Chart</a></li>
+            <li><a href="#western">Western View</a></li>
+            <li><a href="#vedic">Vedic View</a></li>
+            <li><a href="#career">Career &amp; Compatibility</a></li>
+            <li><a href="#transit">Venus Right Now</a></li>
+            <li><a href="#dasha">Vimshottari Dasha</a></li>
+            <li><a href="#forecast">12-Month Forward Outlook</a></li>
+            <li><a href="#targeted">Targeted Remedies</a></li>
+            <li><a href="#universal">Universal Remedies</a></li>
+            <li><a href="#methodology">How This Report Was Prepared</a></li>
+            <li><a href="#action">Your Action Plan</a></li>
+          </ol>
+        </div>
       </div>
 
-      <h2 id="summary">Your Venus at a Glance</h2>
-      <p style="font-style:italic;">${executiveSummary}</p>
+      <section id="summary">
+        <h2 class="section-title"><span class="num">1.</span>Your Venus at a Glance</h2>
+        <p class="lead">${executiveSummary}</p>
+      </section>
 
-      <h2 id="snapshot">Snapshot</h2>
-      <p>Western Sign: ${chart.westernSign} (House ${chart.westernHouse})<br/>
-      Vedic Rashi: ${chart.vedicSign} (Bhava ${chart.vedicHouse})<br/>
-      Nakshatra: ${chart.nakshatra} Pada ${chart.pada}<br/>
-      Dignity: ${chart.dignity.label}<br/>
-      Strength Score: ${chart.score}/100<br/>
-      Lucky Day: ${lucky.day} | Lucky Colors: ${lucky.colors} | Lucky Numbers: ${lucky.numbers} | Favorable Direction: ${lucky.direction}</p>
+      <section id="snapshot">
+        <h2 class="section-title"><span class="num">2.</span>Snapshot</h2>
+        <div class="stat-grid">
+          <div class="stat"><span class="stat-k">Western Sign</span><span class="stat-v">${chart.westernSign} (House ${chart.westernHouse})</span></div>
+          <div class="stat"><span class="stat-k">Vedic Rashi</span><span class="stat-v">${chart.vedicSign} (Bhava ${chart.vedicHouse})</span></div>
+          <div class="stat"><span class="stat-k">Nakshatra</span><span class="stat-v">${chart.nakshatra} &middot; Pada ${chart.pada}</span></div>
+          <div class="stat"><span class="stat-k">Dignity</span><span class="stat-v"><span class="pill">${chart.dignity.label}</span></span></div>
+          <div class="stat"><span class="stat-k">Lucky Day</span><span class="stat-v">${lucky.day}</span></div>
+          <div class="stat"><span class="stat-k">Lucky Colors</span><span class="stat-v">${lucky.colors}</span></div>
+          <div class="stat"><span class="stat-k">Lucky Numbers</span><span class="stat-v">${lucky.numbers}</span></div>
+          <div class="stat"><span class="stat-k">Favorable Direction</span><span class="stat-v">${lucky.direction}</span></div>
+        </div>
+        <div class="score-wrap">
+          <div class="score-label">Strength Score: ${chart.score}/100</div>
+          <div class="score-track"><div class="score-fill" style="width:${chart.score}%;"></div></div>
+        </div>
+      </section>
 
-      <h2 id="chart">Your Vedic Birth Chart (Rashi)</h2>
-      ${buildChartHtml(ascSignIdx, venusSignIdx)}
-      <p style="font-size:11px;color:#7a6f63;">South Indian style chart (fixed sign positions). Asc = Ascendant, Ve = Venus.</p>
+      <section id="chart">
+        <h2 class="section-title"><span class="num">3.</span>Your Vedic Birth Chart (Rashi)</h2>
+        <div class="chart-wrap">
+          ${buildChartHtml(ascSignIdx, venusSignIdx)}
+          <p class="chart-caption">South Indian style chart (fixed sign positions). Asc = Ascendant, Ve = Venus.</p>
+        </div>
+      </section>
 
-      <h2 id="western">Western View</h2>
-      <p>${western.summary}</p><p><b>Love:</b> ${western.love}</p><p><b>Wealth:</b> ${western.wealth}</p><p><b>Health:</b> ${western.health}</p>
+      <section id="western">
+        <h2 class="section-title"><span class="num">4.</span>Western View</h2>
+        <div class="card">
+          <p>${western.summary}</p>
+          <p><b>Love:</b> ${western.love}</p>
+          <p><b>Wealth:</b> ${western.wealth}</p>
+          <p><b>Health:</b> ${western.health}</p>
+        </div>
+      </section>
 
-      <h2 id="vedic">Vedic View</h2>
-      <p>${vedic.summary}</p><p><b>Love:</b> ${vedic.love}</p><p><b>Wealth:</b> ${vedic.wealth}</p><p><b>Health:</b> ${vedic.health}</p>
+      <section id="vedic">
+        <h2 class="section-title"><span class="num">5.</span>Vedic View</h2>
+        <div class="card">
+          <p>${vedic.summary}</p>
+          <p><b>Love:</b> ${vedic.love}</p>
+          <p><b>Wealth:</b> ${vedic.wealth}</p>
+          <p><b>Health:</b> ${vedic.health}</p>
+        </div>
+      </section>
 
-      <h2 id="career">Career &amp; Compatibility</h2>
-      <p><b>Career & Life Path:</b> ${career}</p>
-      <p><b>Compatible Signs:</b> ${compatible.join(", ")}</p>
+      <section id="career">
+        <h2 class="section-title"><span class="num">6.</span>Career &amp; Compatibility</h2>
+        <div class="card">
+          <p><b>Career &amp; Life Path:</b> ${career}</p>
+          <p><b>Compatible Signs:</b> ${compatible.join(", ")}</p>
+        </div>
+      </section>
 
-      <h2 id="transit">Venus Right Now</h2>
-      <p>Transiting Venus is currently in ${transit.currentSign} -- a "${transit.label}" stretch relative to your natal Venus in ${transit.natalSign}. ${transit.note}</p>
+      <section id="transit">
+        <h2 class="section-title"><span class="num">7.</span>Venus Right Now</h2>
+        <div class="card">
+          <p>Transiting Venus is currently in ${transit.currentSign} &mdash; a &ldquo;${transit.label}&rdquo; stretch
+          relative to your natal Venus in ${transit.natalSign}. ${transit.note}</p>
+        </div>
+      </section>
 
-      <h2 id="dasha">Your Vimshottari Dasha (Planetary Periods)</h2>
-      <p>Derived from the Moon's nakshatra at birth (${dasha.moonNakshatra}, pada ${dasha.moonNakshatraPada}, in ${dasha.moonSignSidereal}).</p>
-      <h3>Mahadasha Timeline</h3>
-      <table style="border-collapse:collapse;width:100%;">${mahadashaRows}</table>
-      <h3>Current Antardasha (Sub-Period): ${currentMahadasha.planet} / ${currentAntardasha.planet}</h3>
-      <table style="border-collapse:collapse;width:100%;">${antardashaRows}</table>
+      <section id="dasha">
+        <h2 class="section-title"><span class="num">8.</span>Your Vimshottari Dasha (Planetary Periods)</h2>
+        <p>Derived from the Moon's nakshatra at birth (${dasha.moonNakshatra}, pada ${dasha.moonNakshatraPada}, in ${dasha.moonSignSidereal}).</p>
+        <h3 style="font-size:13px;color:#8a4a63;margin:14px 0 6px;">Mahadasha Timeline</h3>
+        <table class="data-table"><thead><tr><th>Planet</th><th>Period</th></tr></thead><tbody>${mahadashaRows}</tbody></table>
+        <h3 style="font-size:13px;color:#8a4a63;margin:14px 0 6px;">Current Antardasha (Sub-Period): ${currentMahadasha.planet} / ${currentAntardasha.planet}</h3>
+        <table class="data-table"><thead><tr><th>Sub-Period</th><th>Window</th></tr></thead><tbody>${antardashaRows}</tbody></table>
+      </section>
 
-      <h2 id="forecast">12-Month Forward Outlook</h2>
-      <table style="border-collapse:collapse;width:100%;">
-        <tr><th style="padding:4px 8px;border:1px solid #e7d9c4;text-align:left;">Month</th><th style="padding:4px 8px;border:1px solid #e7d9c4;text-align:left;">Venus Sign</th><th style="padding:4px 8px;border:1px solid #e7d9c4;text-align:left;">Angle</th><th style="padding:4px 8px;border:1px solid #e7d9c4;text-align:left;">Note</th></tr>
-        ${monthlyRows}
-      </table>
+      <section id="forecast">
+        <h2 class="section-title"><span class="num">9.</span>12-Month Forward Outlook</h2>
+        <table class="data-table">
+          <thead><tr><th>Month</th><th>Venus Sign</th><th>Angle</th><th>Note</th></tr></thead>
+          <tbody>${monthlyRows}</tbody>
+        </table>
+      </section>
 
-      <h2 id="targeted">Targeted Remedies for Your Venus Condition</h2>
-      ${targetedHtml}
+      <section id="targeted">
+        <h2 class="section-title"><span class="num">10.</span>Targeted Remedies for Your Venus Condition</h2>
+        ${targetedHtml}
+      </section>
 
-      <h2 id="universal">Universal Remedies to Strengthen Venus</h2>
-      <h3>Daily Practice</h3>
-      <ul>${REMEDY_DAILY.map((t) => `<li>${t}</li>`).join("")}</ul>
-      <h3>Weekly (Friday) Practice</h3>
-      <ul>${REMEDY_WEEKLY.map((t) => `<li>${t}</li>`).join("")}</ul>
-      <h3>16-Friday Shukra Sadhana (Accelerated Protocol)</h3>
-      <ul>${REMEDY_SADHANA_16_FRIDAY.map((ph) => `<li><b>${ph.weeks} -- ${ph.focus}:</b> ${ph.detail}</li>`).join("")}</ul>
-      <h3>Gemstone (Use Caution)</h3>
-      <ul><li>${REMEDY_GEMSTONE.primary}</li><li>${REMEDY_GEMSTONE.alternative}</li><li><i>${REMEDY_GEMSTONE.caution}</i></li></ul>
-      <h3>Yantra</h3>
-      <ul><li>${YANTRA.primary}</li><li>${YANTRA.usage}</li></ul>
-      <h3>For Wealth</h3>
-      <ul>${REMEDY_WEALTH.map((t) => `<li>${t}</li>`).join("")}</ul>
-      <h3>For Health</h3>
-      <ul>${REMEDY_HEALTH.map((t) => `<li>${t}</li>`).join("")}</ul>
-      <h3>Modern / Western-Style Practices</h3>
-      <ul>${REMEDY_MODERN.map((t) => `<li>${t}</li>`).join("")}</ul>
-      <h3>Reiki / Energy Healing</h3>
-      <ul>${REMEDY_REIKI.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <section id="universal">
+        <h2 class="section-title"><span class="num">11.</span>Universal Remedies to Strengthen Venus</h2>
+        ${universalCard("Daily Practice", `<ul>${REMEDY_DAILY.map((t) => `<li>${t}</li>`).join("")}</ul>`)}
+        ${universalCard("Weekly (Friday) Practice", `<ul>${REMEDY_WEEKLY.map((t) => `<li>${t}</li>`).join("")}</ul>`)}
+        ${universalCard("16-Friday Shukra Sadhana (Accelerated Protocol)", `<ul>${REMEDY_SADHANA_16_FRIDAY.map((ph) => `<li><b>${ph.weeks} &ndash; ${ph.focus}:</b> ${ph.detail}</li>`).join("")}</ul>`)}
+        ${universalCard("Gemstone (Use Caution)", `<ul><li>${REMEDY_GEMSTONE.primary}</li><li>${REMEDY_GEMSTONE.alternative}</li><li><i>${REMEDY_GEMSTONE.caution}</i></li></ul>`)}
+        ${universalCard("Yantra", `<ul><li>${YANTRA.primary}</li><li>${YANTRA.usage}</li></ul>`)}
+        ${universalCard("For Wealth", `<ul>${REMEDY_WEALTH.map((t) => `<li>${t}</li>`).join("")}</ul>`)}
+        ${universalCard("For Health", `<ul>${REMEDY_HEALTH.map((t) => `<li>${t}</li>`).join("")}</ul>`)}
+        ${universalCard("Modern / Western-Style Practices", `<ul>${REMEDY_MODERN.map((t) => `<li>${t}</li>`).join("")}</ul>`)}
+        ${universalCard("Reiki / Energy Healing", `<ul>${REMEDY_REIKI.map((t) => `<li>${t}</li>`).join("")}</ul>`)}
+      </section>
 
-      <h2 id="methodology">How This Report Was Prepared</h2>
-      ${faqHtml}
+      <section id="methodology">
+        <h2 class="section-title"><span class="num">12.</span>How This Report Was Prepared</h2>
+        ${faqHtml}
+      </section>
 
-      <h2 id="action">Your Action Plan</h2>
-      <p>If you only do three things from this report: follow the "For Your Dignity" remedy above every Friday, track your finances weekly using the practice under Universal Remedies, and revisit this report at the start of your next 16-Friday cycle to see what's shifted.</p>
+      <section id="action">
+        <h2 class="section-title"><span class="num">13.</span>Your Action Plan</h2>
+        <div class="action-box">
+          <p style="margin:0;">If you only do three things from this report: follow the &ldquo;For Your Dignity&rdquo; remedy
+          above every Friday, track your finances weekly using the practice under Universal Remedies, and revisit this
+          report at the start of your next 16-Friday cycle to see what's shifted.</p>
+        </div>
+      </section>
 
-      <p style="font-size:11px;color:#7a6f63;margin-top:30px;">This report uses approximate astronomical calculations and traditional astrological interpretation. It is intended for reflection and spiritual guidance, not a substitute for professional medical, financial, or legal advice, and results from remedies are a matter of traditional belief and personal practice, not a guaranteed or measurable outcome. Consult a qualified astrologer before gemstone use, and a licensed professional for health or financial decisions. Compatibility, transit, and dasha notes are general indicators, not a substitute for a full personalized reading from a qualified astrologer.</p>
+      <p class="disclaimer">This report uses approximate astronomical calculations and traditional astrological interpretation.
+      It is intended for reflection and spiritual guidance, not a substitute for professional medical, financial, or legal
+      advice, and results from remedies are a matter of traditional belief and personal practice, not a guaranteed or
+      measurable outcome. Consult a qualified astrologer before gemstone use, and a licensed professional for health or
+      financial decisions. Compatibility, transit, and dasha notes are general indicators, not a substitute for a full
+      personalized reading from a qualified astrologer.</p>
     </body></html>
   `;
 }

@@ -5,7 +5,7 @@ report (Western + Vedic) from birth date, time, and place, gated behind
 login + country-based payment (Razorpay for India, Stripe for
 international), with a free/admin bypass for a designated account.
 
-**Architecture:** Firebase Authentication handles login/signup only (free
+**Architecture:** Firebase Aut  hentication handles login/signup only (free
 Spark plan, no billing needed). Everything else — credits, payments, report
 history, and all payment-verification logic — lives in your own Supabase
 Postgres database, reached through Supabase Edge Functions. There is no

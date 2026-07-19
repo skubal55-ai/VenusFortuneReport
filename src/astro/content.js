@@ -272,8 +272,10 @@ export const REMEDY_BY_DIGNITY = {
     "Use the 16-Friday sadhana's later phases specifically to release old resentment or scarcity patterns rather than just going through the motions of the ritual.",
   ],
   "Neutral": [
-    "No major affliction or exceptional strength shows up in this placement — Venus here responds predictably and reliably to steady traditional practice.",
-    "Follow the daily and weekly remedies above as your primary path; there's no urgent condition here that calls for anything beyond consistency.",
+    "No major affliction or exceptional strength shows up in this placement, but 'neutral' doesn't mean 'nothing to do' — Venus here rewards deliberate, consistent practice more than either an exalted or afflicted placement, precisely because there's no built-in push in either direction.",
+    "Pick one specific area — love, money, or self-worth — to focus your Friday practice on for the next month rather than treating the remedies generically; a neutral Venus responds well to a clearly chosen intention, not just going through the motions.",
+    "This is a good placement to actually experiment with the less-urgent remedies (the gemstone, the yantra, a specific ongoing charity cause) since there's no active condition to stabilize first — use the 16-Friday sadhana as a genuine tune-up rather than damage control.",
+    "Check which sign your Venus actually falls in under Snapshot above — 'Neutral' dignity still covers six different signs (Aries, Gemini, Cancer, Leo, Sagittarius, Aquarius), and each colors how this placement expresses itself day to day, even without a classical affliction or strength.",
   ],
 };
 
@@ -292,11 +294,239 @@ export const REMEDY_RETROGRADE_EXTRA = [
 export const REMEDY_OWN_NAKSHATRA_NOTE =
   "Venus also sits in one of its own nakshatras (Bharani, Purva Phalguni, or Purva Ashadha) here — traditionally a sign of resilience that helps you recover well even through a difficult placement or affliction. Lean into consistency of practice rather than intensity.";
 
+// ---------------------------------------------------------------------
+// REMEDIES BY VENUS'S HOUSE (chart.vedicHouse, 1-12) — this is the
+// personalization axis that was previously computed (computeVenusChart
+// already returns vedicHouse) but never actually used in the remedies
+// section, which is why two charts with the same dignity but very
+// different house placements read identically. Each house gets both a
+// "traditional" (ritual/classical) and "practical" (modern, actionable)
+// remedy list, since the two serve different readers.
+// ---------------------------------------------------------------------
+export const REMEDY_BY_HOUSE = {
+  1: {
+    name: "1st House (Self & Personality)",
+    traditional: [
+      "Wear a pleasant, natural fragrance and dress in soft, well-fitted clothing on Fridays as a deliberate offering tied to this placement, not just for appearance's sake.",
+      "Keep the mantra practice focused on inner refinement rather than outer polish, so this placement's gift of charm doesn't tip into vanity.",
+      "Offer curd or a milk-based sweet in charity on Fridays — traditionally said to soften ego-driven Venus energy specifically in the 1st house.",
+    ],
+    practical: [
+      "Build a simple, consistent grooming/self-care routine rather than relying on occasional indulgence — steadiness suits this placement better than splurges.",
+      "Notice if compliments or attention have become a need rather than a nice-to-have, and redirect some of that energy into supporting someone else's confidence for a week.",
+      "Journal one honest note each Friday on what you like about yourself beyond appearance.",
+    ],
+    spiritual: [
+      "Alongside the standard Shukra beej mantra, add \"Om Suryaya Namah\" (108 times, ideally at sunrise) — a mantra for radiance and self-worth that specifically supports a 1st-house Venus's link to identity and vitality.",
+      "Hold a specific intention while chanting: not \"let me be admired\" but \"let my self-worth be steady, not dependent on outside approval\" — the intention matters as much as the repetition count for this house.",
+      "For Reiki or self-energy work, focus on the solar plexus (Manipura) rather than only the heart/sacral centers used for Venus generally — rest a hand just above the navel for a few quiet minutes on Fridays, since this house's Venus expresses through personal confidence and presence.",
+    ],
+  },
+  2: {
+    name: "2nd House (Wealth, Family & Speech)",
+    traditional: [
+      "Keep household savings or valuables in a clean, well-lit, undisturbed part of the home — 2nd-house Venus remedies traditionally center on protecting family wealth.",
+      "Speak gently and avoid harsh or exaggerated words around money matters on Fridays especially — this house links speech and wealth directly.",
+      "Offer sweets or white food items to family members (not only outside charity) as part of the Friday practice — this placement responds well to remedies kept within the family circle.",
+    ],
+    practical: [
+      "Run a simple household budget review that includes family members, since this placement ties personal wealth closely to shared finances.",
+      "Watch for using diplomatic or flattering speech to avoid hard money conversations — practice saying the direct, less comfortable thing at least once a month.",
+      "Build a dedicated emergency fund rather than just tracking income — 2nd house governs accumulated wealth, so consistency matters more than growth speed.",
+    ],
+    spiritual: [
+      "Pair the daily Shukra mantra with the Lakshmi mantra \"Om Shreem Mahalakshmiyei Namah\" (11 or 108 times on Fridays) — traditionally invoked specifically for household and family wealth, which is this house's core domain.",
+      "Chant with the intention of protecting and growing family resources, not just personal gain — 2nd-house remedies traditionally work best when framed around the household, not the individual alone.",
+      "For Reiki, direct attention to the throat chakra (Vishuddha) — a few minutes of quiet hand-on-throat practice before a difficult money conversation is traditionally said to support calmer, more honest speech around finances.",
+    ],
+  },
+  3: {
+    name: "3rd House (Courage, Siblings & Communication)",
+    traditional: [
+      "This is a more neutral-strength house for Venus; treat the remedies as steady, ongoing effort rather than something urgent.",
+      "Maintain sibling or close-peer relationships through small Friday gestures — a call, a small gift, a kind word — since this house ties relationship harmony to that circle specifically.",
+      "Short local pilgrimages or temple visits on Fridays are considered especially effective for this house, more so than long journeys.",
+    ],
+    practical: [
+      "Use creative or communication skills (writing, art, sales, pitching) actively rather than passively — this placement gives ability but needs initiative to convert it into results.",
+      "If a sibling or peer relationship feels strained, address it soon — 3rd-house Venus friction tends to fester quietly rather than resolve on its own.",
+      "Channel courage into small, consistent creative risks (sharing work publicly, pitching an idea) rather than waiting for one big leap.",
+    ],
+    spiritual: [
+      "Add the Saraswati mantra \"Om Aim Saraswatyai Namah\" (108 times, ideally in the morning) alongside the Shukra practice — traditionally invoked for communication, skill, and courage, all core 3rd-house themes.",
+      "Use this house's Friday practice to set an intention around one specific communication pattern (a hard conversation avoided, a sibling relationship needing repair) rather than a general wish.",
+      "For Reiki, work with the solar plexus (Manipura) — the seat of courage and personal will in most energy-work traditions — with a few minutes of hands-on-abdomen practice before situations that call for direct communication.",
+    ],
+  },
+  4: {
+    name: "4th House (Home, Mother & Emotional Foundation)",
+    traditional: [
+      "An especially favorable house for Venus; the primary traditional remedy is simply keeping the home clean, beautiful, and peaceful.",
+      "Honor your mother or a maternal figure specifically on Fridays — a call, a visit, a small gift — since this house ties personal fortune to that relationship.",
+      "Keep fresh flowers, a small water feature, or fragrance in the home, traditionally said to activate this placement's comfort-giving nature.",
+    ],
+    practical: [
+      "Invest real time and some money into making your living space genuinely comfortable — for this placement that's a functional lever for wellbeing, not indulgence.",
+      "If there's tension with your mother or in your home environment, prioritize resolving it before other Venus remedies — this house amplifies whatever the home situation actually is.",
+      "Check whether you're actually spending enough downtime at home versus constantly being out — this placement's contentment depends on it.",
+    ],
+    spiritual: [
+      "Add the Durga mantra \"Om Dum Durgayei Namah\" (108 times on Fridays) — traditionally invoked for protection and nurturing of home and family, matching this house's core signification.",
+      "Chant with the home itself in mind: many practitioners light a lamp or incense at a home altar while reciting, rather than treating the mantra as a purely personal practice for this house.",
+      "For Reiki, focus on the heart chakra (Anahata) — a few minutes of hands-on-heart practice at home, ideally in the room you spend the most time in, is traditionally said to support this placement's emotional foundation.",
+    ],
+  },
+  5: {
+    name: "5th House (Romance, Creativity & Children)",
+    traditional: [
+      "One of Venus's most favorable houses; channel this strength into creative or devotional expression — singing, dance, or art offered on Fridays.",
+      "If seeking romance or children, this placement responds especially well to Lakshmi puja and the full 16-Friday sadhana taken seriously.",
+      "Traditional guidance cautions against overindulgence in romantic pursuit at the expense of other duties — balance, not restriction, is the actual remedy here.",
+    ],
+    practical: [
+      "Pursue a creative outlet with real commitment rather than treating it as a passive hobby — this placement rewards genuine investment.",
+      "In romantic relationships, watch for a tendency to idealize — ground decisions in practical compatibility, not only chemistry.",
+      "If you want children or are already a parent, protect deliberate, undistracted time weekly — this house's fortune is tied to that relationship specifically.",
+    ],
+    spiritual: [
+      "Add \"Om Namo Bhagavate Vasudevaya\" (108 times on Fridays) alongside the Shukra mantra — a widely used devotional mantra for love, joy, and creative expression that suits this house's romance/creativity themes particularly well.",
+      "If the goal is creative output rather than romance specifically, hold that as the explicit intention while chanting — this house responds to a clearly named goal more than a vague wish for \"good things.\"",
+      "For Reiki, the sacral chakra (Svadhisthana) is the primary focus here — traditionally the center for creativity, pleasure, and procreation — a few minutes of hands-on-lower-abdomen practice on Fridays supports this house directly.",
+    ],
+  },
+  6: {
+    name: "6th House (Health, Service, Debts & Disputes)",
+    traditional: [
+      "A more difficult house for Venus, linked to debts, disputes, and friction in relationships — take these remedies as seriously as you would a weak dignity.",
+      "Add service to others (seva) alongside the standard Friday charity — volunteering without expecting anything back is specifically recommended for 6th-house afflictions.",
+      "Avoid starting new financial disputes or lending large sums around Fridays where possible — this placement traditionally makes such matters harder to resolve cleanly.",
+    ],
+    practical: [
+      "Address lingering debts (owed or owing) directly rather than letting them sit — 6th-house Venus issues tend to compound the longer they're ignored.",
+      "Don't dismiss relationship-linked health issues (yours or a partner's) as minor — this house often shows stress somatically.",
+      "Be honest about relationships that feel more transactional than genuine, and decide which ones need to be renegotiated or let go.",
+    ],
+    spiritual: [
+      "Add the Mahamrityunjaya mantra (\"Om Tryambakam Yajamahe...\", 11 or 108 times) — traditionally used for health and overcoming obstacles, which fits this house's links to health, debts, and disputes especially well.",
+      "For debt or dispute-specific concerns, add the Ganesha mantra \"Om Gam Ganapataye Namah\" before starting any resolution process (a difficult conversation, a repayment plan) — traditionally invoked for removing obstacles.",
+      "For Reiki, work with the root chakra (Muladhara) — the center most associated with security and physical health — a few minutes of grounding practice (hands on lower back, or simply sitting with feet flat on the floor) supports this house's more effortful themes.",
+    ],
+  },
+  7: {
+    name: "7th House (Marriage, Partnerships & Business)",
+    traditional: [
+      "Venus's own natural house of significance — traditional remedies here center almost entirely on the marriage or partnership itself, as the primary focus of Friday practice.",
+      "If unmarried and seeking marriage, this placement responds particularly well to the full 16-Friday sadhana and a gemstone consultation, rather than the shorter daily practice alone.",
+      "Traditional guidance cautions against multiple or fickle romantic entanglements here — this placement's strength is best expressed through committed partnership, not variety.",
+    ],
+    practical: [
+      "If in a relationship or business partnership, schedule real, undistracted time with that person weekly — this placement's fortune is genuinely tied to that specific bond's health.",
+      "Do real due diligence (financial, character) on partners or associates rather than relying on charm or first impressions.",
+      "If single and seeking partnership, be proactive rather than passive — this placement gives potential, not automatic outcomes.",
+    ],
+    spiritual: [
+      "Add \"Om Namo Narayanaya\" (108 times on Fridays) — traditionally invoked for harmonious partnership (Narayana paired with Lakshmi is the classical archetype of committed union), fitting for Venus in its own significator house.",
+      "If married or partnered, consider chanting with your partner present or in mind at least once during the week, not only alone — this house's remedies traditionally work best when they include the relationship itself.",
+      "For Reiki, the heart chakra (Anahata) is the clear focus — a shared few minutes of quiet hands-on-heart practice with a partner (or solo, holding the relationship in mind) is traditionally considered supportive for this placement.",
+    ],
+  },
+  8: {
+    name: "8th House (Transformation, In-laws & Sudden Change)",
+    traditional: [
+      "A traditionally difficult house for Venus, linked to complications around in-laws, inheritance, or sudden relationship/financial shifts — treat remedies here as seriously as a debilitated placement.",
+      "Avoid rushing decisions on joint finances, inheritance, or in-law matters specifically — traditional guidance urges patience here above all.",
+      "A qualified astrologer's input is especially worth seeking for this placement, since 8th-house effects are traditionally considered to unfold suddenly and unpredictably.",
+    ],
+    practical: [
+      "Keep financial and legal matters involving partners, in-laws, or shared assets well-documented and transparent — clarity protects you here more than trust alone.",
+      "Build in a financial and emotional buffer for sudden relationship or money changes rather than assuming stability.",
+      "Address small in-law tensions early rather than letting them build toward the kind of sudden rupture this house can indicate.",
+    ],
+    spiritual: [
+      "Add the Kali mantra \"Om Krim Kalikayai Namah\" (108 times, done calmly and without fear) — traditionally invoked for navigating deep transformation and protection through sudden change, which matches this house's themes directly.",
+      "The Mahamrityunjaya mantra is also traditionally recommended here for protection and resilience through the sudden shifts this house can indicate — use it if the Kali mantra feels unfamiliar or uncomfortable.",
+      "For Reiki, ground through the root chakra (Muladhara) first before working with the sacral chakra (Svadhisthana) — this house's intensity is traditionally approached by stabilizing security before addressing deeper emotional material.",
+    ],
+  },
+  9: {
+    name: "9th House (Luck, Dharma, Father & Higher Learning)",
+    traditional: [
+      "A favorable house for Venus, tying fortune to ethical conduct, higher learning, or spiritual practice — formalize whatever spiritual practice you already lean toward rather than starting from scratch.",
+      "Honor your father or a paternal figure as part of Friday practice, alongside the standard Lakshmi devotion.",
+      "Even a modest, local pilgrimage is considered especially fruitful for this placement compared to others.",
+    ],
+    practical: [
+      "Invest in further education, training, or mentorship relevant to your goals — this placement's luck compounds through genuine growth, not passive waiting.",
+      "If your relationship with your father needs repair, this is a specifically good placement to prioritize that conversation.",
+      "Pair this placement's natural optimism with real follow-through on plans, since it can otherwise tip into complacency.",
+    ],
+    spiritual: [
+      "Add the Gayatri mantra (traditionally chanted at sunrise) alongside the Shukra practice — associated with wisdom and higher learning, matching this house's dharma and knowledge significations closely.",
+      "If a specific spiritual or educational path already resonates, use this house's Friday practice to formalize it (a regular text, a teacher, a course) rather than starting an entirely new, unrelated practice.",
+      "For Reiki, the third eye (Ajna) is the natural focus — a few quiet minutes with attention between the eyebrows supports this house's link to wisdom, intuition, and dharma-oriented decisions.",
+    ],
+  },
+  10: {
+    name: "10th House (Career & Public Status)",
+    traditional: [
+      "Venus here traditionally supports a public-facing or aesthetically-oriented career — remedies focus on protecting reputation alongside the usual Friday practice.",
+      "Traditional guidance cautions against career decisions driven purely by prestige or appearance — verify real substance behind opportunities, not just their shine.",
+      "Show respect to mentors, senior colleagues, or authority figures on Fridays, said to support career-related Venus fortune specifically.",
+    ],
+    practical: [
+      "Lean into creative, client-facing, or design-oriented aspects of your work where possible — this placement's strength shows up most in visible, relationship-based roles.",
+      "Protect your professional reputation deliberately (follow-through, communication, how you show up) since this house ties fortune directly to public standing.",
+      "Do a practical gut-check (income, hours, real growth) on career moves rather than choosing based on image alone.",
+    ],
+    spiritual: [
+      "Add the Ganesha mantra \"Om Gam Ganapataye Namah\" before important career milestones (interviews, launches, negotiations) — traditionally invoked for removing obstacles to public success, matching this house's career focus.",
+      "Chant with a specific professional intention in mind (a role, a project, a reputation you want to build) rather than a vague wish for \"success\" — this house responds to named goals.",
+      "For Reiki, the solar plexus (Manipura) is the focus — the seat of personal power and confidence — a few minutes of practice before public-facing work situations is traditionally considered supportive.",
+    ],
+  },
+  11: {
+    name: "11th House (Gains, Income & Social Circle)",
+    traditional: [
+      "A generally favorable house for Venus, tied to income and social or friendship circles — channel this into generosity within your network, not only formal charity.",
+      "Nurture friendships and social ties as part of Friday practice, not only romantic relationships — this house links gains to relationships broadly.",
+      "Consider small, regular acts of generosity toward friends or community as an extension of the weekly charity practice.",
+    ],
+    practical: [
+      "Actively nurture your professional and social network — this placement's gains often come through people, not solely individual effort.",
+      "Diversify income streams where possible; this house favors multiple, ongoing sources of gain over one concentrated source.",
+      "Be selective about which social circles you invest time in — this placement rewards quality relationships over volume.",
+    ],
+    spiritual: [
+      "Add a short Kubera mantra (\"Om Shreem Hreem Kleem Shreem Kuberaya Namah\", 11 or 108 times) — traditionally invoked for gains and abundance through networks and community, matching this house's core signification.",
+      "Extend the Friday practice beyond personal ritual — a small gesture of generosity toward a friend or your wider community is traditionally considered to activate this house's gains more than solitary practice alone.",
+      "For Reiki, the heart chakra (Anahata) is the focus, since this house's gains are relationship-driven — a few minutes of practice with gratitude for your social/professional network in mind is traditionally supportive here.",
+    ],
+  },
+  12: {
+    name: "12th House (Losses, Foreign Connections & Spirituality)",
+    traditional: [
+      "A traditionally weaker house for material Venus significations (spending, visible enjoyment) but one that can indicate genuine spiritual or foreign connections — approach remedies with the seriousness of a debilitated placement.",
+      "Redirect this placement's tendency toward loss into conscious charitable giving or spiritual retreat, turning an afflicted pattern into a deliberate one.",
+      "If drawn to life or work abroad, this placement traditionally supports that path even while showing more ordinary financial strain at home.",
+    ],
+    practical: [
+      "Track discretionary spending closely — this placement can show up as money leaking away without a clear cause; a simple monthly expense review is the most direct counter.",
+      "Don't dismiss a pull toward relocating, working abroad, or a more spiritually-oriented path as unrealistic — explore it deliberately rather than only reactively.",
+      "Build in intentional quiet or retreat time periodically — this house's Venus benefits more from withdrawal than from constant socializing or spending.",
+    ],
+    spiritual: [
+      "Add \"Om Namah Shivaya\" (108 times, ideally at night) alongside the Shukra practice — a mantra of surrender and release that matches this house's themes of loss, letting go, and spiritual connection especially well.",
+      "Frame the intention around release rather than acquisition — this house traditionally responds better to \"let me release what no longer serves me\" than to remedies aimed at gaining more.",
+      "For Reiki, the crown chakra (Sahasrara) is the natural focus — a few quiet minutes of practice at the top of the head, ideally during a quiet retreat-like moment, supports this house's more spiritual, less material orientation.",
+    ],
+  },
+};
+
 /**
  * Assemble the remedy sections that are specific to THIS chart's actual
  * Venus condition, separate from the universal daily/weekly/sadhana
  * practices which are intentionally the same for everyone.
- * @param {{dignity:{label:string}, combust:boolean, retrograde:boolean, ownNakshatra:boolean}} chart
+ * @param {{dignity:{label:string}, combust:boolean, retrograde:boolean, ownNakshatra:boolean, vedicHouse:number}} chart
  * @returns {{heading:string, items:string[]}[]}
  */
 export function buildTargetedRemedies(chart) {
@@ -313,6 +543,15 @@ export function buildTargetedRemedies(chart) {
   }
   if (chart.ownNakshatra) {
     sections.push({ heading: "Bonus: Own Nakshatra", items: [REMEDY_OWN_NAKSHATRA_NOTE] });
+  }
+
+  const houseInfo = REMEDY_BY_HOUSE[chart.vedicHouse];
+  if (houseInfo) {
+    sections.push({ heading: `Traditional Remedies — Venus in Your ${houseInfo.name}`, items: houseInfo.traditional });
+    sections.push({ heading: `Practical Steps — Venus in Your ${houseInfo.name}`, items: houseInfo.practical });
+    if (houseInfo.spiritual) {
+      sections.push({ heading: `Mantra, Spiritual & Reiki Remedies — Venus in Your ${houseInfo.name}`, items: houseInfo.spiritual });
+    }
   }
 
   return sections;

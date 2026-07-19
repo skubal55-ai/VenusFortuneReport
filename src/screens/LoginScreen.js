@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
-import { signIn, signUp } from "../services/auth";
+import { signIn, signUp, resetPassword } from "../services/auth";
 import { fetchProfile } from "../services/profile";
 import { showAlert } from "../utils/alert";
 import { useAuth } from "../context/AuthContext";
@@ -12,6 +12,7 @@ export default function LoginScreen({ navigation, route }) {
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState("signin"); // or "signup"
   const [busy, setBusy] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
 
   async function proceedAfterAuth() {
     // fetchProfile() calls the get-profile Edge Function, which also lazily
@@ -42,6 +43,25 @@ export default function LoginScreen({ navigation, route }) {
     }
   }
 
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      showAlert("Enter your email", "Type your email address above first, then tap \"Forgot password?\" again.");
+      return;
+    }
+    setResetBusy(true);
+    try {
+      await resetPassword(email.trim());
+      showAlert(
+        "Check your email",
+        `If an account exists for ${email.trim()}, a password reset link was just sent. It can take a few minutes to arrive — check your spam/junk folder too.`
+      );
+    } catch (e) {
+      showAlert("Couldn't send reset email", e.message || String(e));
+    } finally {
+      setResetBusy(false);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{mode === "signin" ? "Log In" : "Create Account"}</Text>
@@ -62,6 +82,12 @@ export default function LoginScreen({ navigation, route }) {
         value={password}
         onChangeText={setPassword}
       />
+
+      {mode === "signin" && (
+        <TouchableOpacity onPress={handleForgotPassword} disabled={resetBusy} style={styles.forgotLink}>
+          <Text style={styles.forgotText}>{resetBusy ? "Sending..." : "Forgot password?"}</Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity style={styles.primaryBtn} onPress={handleSubmit} disabled={busy}>
         {busy ? <ActivityIndicator color="#fff" /> : (
@@ -89,4 +115,6 @@ const styles = StyleSheet.create({
   primaryBtn: { marginTop: 8, backgroundColor: "#c76b8a", borderRadius: 8, padding: 14, alignItems: "center" },
   primaryBtnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   switchText: { textAlign: "center", color: "#b8860b", marginTop: 16 },
+  forgotLink: { alignSelf: "flex-end", marginTop: -4, marginBottom: 12 },
+  forgotText: { color: "#b8860b", fontSize: 13 },
 });
